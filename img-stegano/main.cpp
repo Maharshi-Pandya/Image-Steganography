@@ -5,9 +5,13 @@
 int main(int argc, char const *argv[])
 {
   // init
-  ImageStegano image("/mnt/sda1/Pictures/Wallpapers/PatrickShocked.jpg", "Hello World! 💟");
-  // print the class information
-  image.printInfo();
+  ImageStegano decodeImage("/mnt/sda1/Pictures/Wallpapers/PatrickShocked.jpg", 190);
+  
+  decodeImage.setTextToEncode("Hello World!");
+  decodeImage.printInfo();
+
+  decodeImage.setLenToDecode(360);
+  decodeImage.printInfo();
 
   return 0;
 }
