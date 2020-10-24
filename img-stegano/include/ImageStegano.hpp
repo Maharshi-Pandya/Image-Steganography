@@ -8,6 +8,8 @@
 #include <cstring>
 #include <SFML/Graphics/Image.hpp>  // for dealing with images
 
+#include "Utils.hpp"
+
 // ---------------- Definitions --------------------- //
 class ImageStegano
 {
@@ -24,11 +26,15 @@ private:
   uint _messLen;
   uint _inputImageSizeX, _inputImageSizeY;
   std::string _inputImagePath, _inputText;
+  std::string _inputTextBin;
 
 public:
   // overload for decoding
   ImageStegano(std::string, uint);
   ImageStegano(std::string, std::string);
+  // conversions
+  void inputTextToBinStr(void);
+
   // set the input text if want to encode
   void setTextToEncode(std::string);
   void setLenToDecode(uint);
@@ -41,6 +47,7 @@ public:
 };
 
 // ------------------- Implementation ---------------------- //
+//-----------------------------------------------------------------------------------
 ImageStegano::ImageStegano(std::string inputImagePath, uint messLen)
 {
   this->_inputImagePath = inputImagePath;
@@ -58,6 +65,7 @@ ImageStegano::ImageStegano(std::string inputImagePath, uint messLen)
     std::cout<<"::-> Error opening the image file. Make sure the path is correct\n";
     exit(1);
   }
+
   // set the size
   this->_inputImageSizeX = this->_inputImage.getSize().x;
   this->_inputImageSizeY = this->_inputImage.getSize().y;
@@ -89,11 +97,27 @@ ImageStegano::ImageStegano(std::string inputImagePath, std::string inputText)
     exit(1);
   }
 
+  // set the text bin str
+  this->inputTextToBinStr();
+
   // from the size create the output image
   this->_inputImageSizeX = this->_inputImage.getSize().x;
   this->_inputImageSizeY = this->_inputImage.getSize().y;
   this->_wannaEncode = true;
 }
+
+//----------------------------------------------------------------------------------------------
+// convert to bin set
+void ImageStegano::inputTextToBinStr(void)
+{
+  for(size_t i=0; i<_inputText.length(); i++)
+  {
+    this->_inputTextBin.append(utils::toBinStr((uint)_inputText[i]).to_string());
+  }
+  // printf("The binstr is: %s\n", _inputTextBin.c_str());
+}
+
+// -------------------------------------------------------------------------------------------
 
 void ImageStegano::createOutputImage(void)
 {
@@ -107,6 +131,8 @@ void ImageStegano::createOutputImage(void)
   }
 }
 
+//----------------------------------------------------------------------------------------------
+
 void ImageStegano::setTextToEncode(std::string inputText)
 {
   this->_inputText = inputText;
@@ -117,21 +143,30 @@ void ImageStegano::setTextToEncode(std::string inputText)
     std::cout<<"::-> Error: The input text to hide cannot be empty\n";
     exit(1);
   }
+  // set the input text bin
+  this->inputTextToBinStr();
   this->_wannaEncode = true;
 }
+
+//-----------------------------------------------------------------------------------------
 
 void ImageStegano::setLenToDecode(uint messLen)
 {
   this->_messLen = messLen;
-  this->_inputText = "";
   if(this->_messLen <= 0)
   {
     // raise error if mess len is zero
     std::cout<<"::-> Error: The message length to decode cannot be zero\n";
     exit(1);
   }
+  // unset the input text and bin str
+  this->_inputText = "";
+  this->_inputTextBin = "";
+
   this->_wannaEncode = false;
 }
+
+//-----------------------------------------------------------------------------------------
 
 void ImageStegano::printInfo(void)
 {
@@ -140,11 +175,16 @@ void ImageStegano::printInfo(void)
   std::cout<<"Input image path: "<<_inputImagePath<<"\n";
   std::cout<<"The message to extract/encode, has length: "<<_messLen<<"\n";
   if(!_inputText.empty())
+  {
     std::cout<<"Input text to hide: "<<_inputText<<"\n";
+    std::cout<<"Input text binary form: "<<_inputTextBin<<"\n";
+  }
   std::cout<<"Size of input image: "<<_inputImageSizeX<<" x "<<_inputImageSizeY<<"\n";
   std::cout<<"Output image size: "<<(uint)_outputImage.getSize().x<<" x "<<
   (uint)_outputImage.getSize().y<<"\n";
 }
+
+//-----------------------------------------------------------------------------------------
 
 ImageStegano::~ImageStegano()
 {

@@ -1,0 +1,11 @@
+Take the input text and convert it into binary.
+
+Eg.
+    "Hello World! 💟" => "0100100001100101011011000110110001101111001000000101011101101111011100100110110001100100001000010010000011110000100111111001001010011111"
+
+yeah its long ik...its binary what do u expect
+
+So after converting to binary, take each byte(8 bits) from it, convert the byte to
+uint8 and set the blue channel as that byte.
+
+Encoding doneee!
