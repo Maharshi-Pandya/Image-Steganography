@@ -32,9 +32,9 @@ namespace utils
     for(int i=0; i<8; i++)
     {
       char toBeBit = binStr[8*(byteNum - 1) + i];
-      if(isalpha(toBeBit))
+      if(!isdigit(toBeBit) || toBeBit != '0' || toBeBit != '1')
       {
-        std::cerr<<"\n::-> Error: The string must be composed of 0s and 1s.\n";
+        std::cerr<<"::-> Error: The string must be composed of 0s and 1s.\n";
         exit(1);
       }
       // set the appropriate bit
