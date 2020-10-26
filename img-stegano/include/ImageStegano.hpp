@@ -56,13 +56,13 @@ ImageStegano::ImageStegano(std::string inputImagePath, uint messLen)
   if(!this->_messLen)
   {
     // raise error for 0 message length
-    std::cout<<"::-> Error: The message to be decoded must have length greater than 0\n";
+    std::cerr<<"::-> Error: The message to be decoded must have length greater than 0\n";
     exit(1);
   }
   if(!this->_inputImage.loadFromFile(this->_inputImagePath))
   {
     // raise error for invalid path
-    std::cout<<"::-> Error opening the image file. Make sure the path is correct\n";
+    std::cerr<<"::-> Error opening the image file. Make sure the path is correct\n";
     exit(1);
   }
 
@@ -81,19 +81,19 @@ ImageStegano::ImageStegano(std::string inputImagePath, std::string inputText)
   if(_inputText.empty() || this->_messLen == 0)
   {
     // raise error for empty input text
-    std::cout<<"::-> Error: Input text to hide cannot be empty\n";
+    std::cerr<<"::-> Error: Input text to hide cannot be empty\n";
     exit(1);
   }
   if(_inputImagePath.empty() || _inputImagePath.length() == 0)
   {
     // raise an error for empty path
-    std::cout<<"::-> Empty path for the image file is not allowed\n";
+    std::cerr<<"::-> Empty path for the image file is not allowed\n";
     exit(1);
   }
   if(!_inputImage.loadFromFile(_inputImagePath))
   {
     // error opening the file
-    std::cout<<"::-> Error opening the image file. Make sure the path is correct\n";
+    std::cerr<<"::-> Error opening the image file. Make sure the path is correct\n";
     exit(1);
   }
 
@@ -140,7 +140,7 @@ void ImageStegano::setTextToEncode(std::string inputText)
   if(inputText.empty() || this->_messLen == 0)
   {
     // raise error for empty text
-    std::cout<<"::-> Error: The input text to hide cannot be empty\n";
+    std::cerr<<"::-> Error: The input text to hide cannot be empty\n";
     exit(1);
   }
   // set the input text bin
@@ -156,7 +156,7 @@ void ImageStegano::setLenToDecode(uint messLen)
   if(this->_messLen <= 0)
   {
     // raise error if mess len is zero
-    std::cout<<"::-> Error: The message length to decode cannot be zero\n";
+    std::cerr<<"::-> Error: The message length to decode cannot be zero\n";
     exit(1);
   }
   // unset the input text and bin str
