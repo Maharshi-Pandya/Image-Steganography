@@ -21,7 +21,7 @@ private:
       *SizeX and *SizeY: unsigned int 
   */
 
-  bool _wannaEncode = true;
+  bool _wannaEncode = true, _doneEncoding = false;
   sf::Image _inputImage, _outputImage;
   uint _messLen;
   uint _inputImageSizeX, _inputImageSizeY;
@@ -34,7 +34,6 @@ public:
   ImageStegano(std::string, std::string);
   // conversions
   void inputTextToBinStr(void);
-
   // set the input text if want to encode
   void setTextToEncode(std::string);
   void setLenToDecode(uint);
@@ -42,6 +41,8 @@ public:
   // encode and decode methods
   void encodeImage(void);
   std::string decodeImage(void);
+  // save image
+  void saveEncodedImage(std::string pathToSave);
   void printInfo(void);
   ~ImageStegano();
 };
@@ -104,6 +105,7 @@ ImageStegano::ImageStegano(std::string inputImagePath, std::string inputText)
   this->_inputImageSizeX = this->_inputImage.getSize().x;
   this->_inputImageSizeY = this->_inputImage.getSize().y;
   this->_wannaEncode = true;
+  this->_doneEncoding = false;
 }
 
 //----------------------------------------------------------------------------------------------
@@ -121,9 +123,16 @@ void ImageStegano::inputTextToBinStr(void)
 
 void ImageStegano::createOutputImage(void)
 {
-  // set the color to black
+  // set the pixels from input image
   if(_wannaEncode)
+  {
     this->_outputImage.create(_inputImageSizeX, _inputImageSizeY, sf::Color::Black);
+    for(uint y=0; y<_inputImageSizeY; y++)
+      for(uint x=0; x<_inputImageSizeX; x++)
+      {
+        _outputImage.setPixel(x, y, _inputImage.getPixel(x, y));
+      }
+  }
   else
   {
     // create a 0 x 0 empty image
@@ -146,6 +155,7 @@ void ImageStegano::setTextToEncode(std::string inputText)
   // set the input text bin
   this->inputTextToBinStr();
   this->_wannaEncode = true;
+  this->_doneEncoding = false;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -166,12 +176,98 @@ void ImageStegano::setLenToDecode(uint messLen)
   this->_wannaEncode = false;
 }
 
+//------------------------------------------------------------------------------------
+
+void ImageStegano::encodeImage(void)
+{
+  if(_wannaEncode)
+  {
+    createOutputImage();
+
+    uint bitsEncoded = 0;
+    uint temp_bit = 0, next_bit;  // for encoding
+    uint totalBitsToEncode = _messLen * 8;
+    
+    // loop through the image pixels
+    for(uint y=0; y<_inputImageSizeY; y++)
+    {
+      for(uint x=0; x<_inputImageSizeX; x++)
+      {
+        if(bitsEncoded >= totalBitsToEncode)
+        {
+          _doneEncoding = true;
+          return;
+        }
+        // get the red, green, blue channels at pixel P(x, y)
+        sf::Color curr_pixel = _inputImage.getPixel(x, y);
+        uint8_t red_lsb = curr_pixel.r & 1;
+        uint8_t grn_lsb = curr_pixel.g & 1;
+        uint8_t blu_lsb = curr_pixel.b & 1;
+
+        // TODO: get the next bit from input text bin and set lsbs
+        // ! refactoring needed
+
+        // red
+        next_bit = (uint8_t)utils::getNextBitFrom(_inputTextBin);
+        if(next_bit != -1)
+        {
+          // bits still remain
+          temp_bit = red_lsb ^ next_bit;  // if the bit changes or not
+          curr_pixel.r += temp_bit;
+          bitsEncoded++;
+        }
+        // green
+        next_bit = (uint8_t)utils::getNextBitFrom(_inputTextBin);
+        if(next_bit == -1)
+        {
+          temp_bit = grn_lsb ^ next_bit;
+          curr_pixel.g += temp_bit;
+          bitsEncoded++;
+        }
+        // blue
+        next_bit = (uint8_t)utils::getNextBitFrom(_inputTextBin);
+        if(next_bit != -1)
+        {
+          // bits still remain
+          temp_bit = blu_lsb ^ next_bit;
+          curr_pixel.b += temp_bit;
+          bitsEncoded++;
+        }
+        // set the output image pixel
+        sf::Color out_col = sf::Color((uint8_t)curr_pixel.r, (uint8_t)curr_pixel.g, 
+        (uint8_t)curr_pixel.b, (uint8_t)curr_pixel.a);
+        
+        _outputImage.setPixel(x, y, out_col);
+      }
+    }
+  }
+}
+
+//---------------------------------------------------------------------------------------
+void ImageStegano::saveEncodedImage(std::string pathToSave)
+{
+  if(pathToSave.empty() || pathToSave.length() == 0)
+  {
+    std::cerr<<"::-> Error: Dude! The given path is empty. Try again\n";
+    exit(1);
+  }
+  if(!_doneEncoding)
+  {
+    std::cerr<<"::-> Error: Dude, how can you save the image without encoding? Go get a life!\n";
+    exit(1);
+  }
+  if(!_outputImage.saveToFile(pathToSave))
+  {
+    // error saving to disk
+    std::cerr<<"::-> Some error occurred while saving...Try again with valid path and/or file extension\n";
+    exit(1);
+  }
+}
+
 //-----------------------------------------------------------------------------------------
 
 void ImageStegano::printInfo(void)
 {
-  this->createOutputImage();
-
   std::cout<<"Input image path: "<<_inputImagePath<<"\n";
   std::cout<<"The message to extract/encode, has length: "<<_messLen<<"\n";
   if(!_inputText.empty())
@@ -180,8 +276,6 @@ void ImageStegano::printInfo(void)
     std::cout<<"Input text binary form: "<<_inputTextBin<<"\n";
   }
   std::cout<<"Size of input image: "<<_inputImageSizeX<<" x "<<_inputImageSizeY<<"\n";
-  std::cout<<"Output image size: "<<(uint)_outputImage.getSize().x<<" x "<<
-  (uint)_outputImage.getSize().y<<"\n";
 }
 
 //-----------------------------------------------------------------------------------------

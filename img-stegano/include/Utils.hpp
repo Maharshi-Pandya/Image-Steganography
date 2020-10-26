@@ -32,7 +32,7 @@ namespace utils
     for(int i=0; i<8; i++)
     {
       char toBeBit = binStr[8*(byteNum - 1) + i];
-      if(!isdigit(toBeBit) || toBeBit != '0' || toBeBit != '1')
+      if(toBeBit != '0' && toBeBit != '1')
       {
         std::cerr<<"::-> Error: The string must be composed of 0s and 1s.\n";
         exit(1);
@@ -43,6 +43,28 @@ namespace utils
     }
 
     return (uint)byte;
+  }
+  // get the next bit from the bin str
+  uint __cov_len = 0;
+  int getNextBitFrom(std::string binStr)
+  {
+    if(__cov_len > (uint)binStr.length() - 1)
+    {
+      // reset cov_len and return -1
+      __cov_len = 0;
+      return -1;
+    }
+    char toBeBit = binStr[__cov_len];
+    if(toBeBit != '0' && toBeBit != '1')
+    {
+      std::cerr<<"::-> Error: The string must be composed of 0s and 1s.\n";
+      exit(1);
+    }
+    // increment the cov_len
+    int bit = toBeBit == '0' ? 0 : 1;
+    __cov_len++;
+
+    return bit;
   }
 }
 
