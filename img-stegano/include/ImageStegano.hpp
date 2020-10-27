@@ -112,6 +112,7 @@ ImageStegano::ImageStegano(std::string inputImagePath, std::string inputText)
 // convert to bin set
 void ImageStegano::inputTextToBinStr(void)
 {
+  this->_inputTextBin = "";   // empty the string first
   for(size_t i=0; i<_inputText.length(); i++)
   {
     this->_inputTextBin.append(utils::toBinStr((uint)_inputText[i]).to_string());
@@ -187,7 +188,9 @@ void ImageStegano::encodeImage(void)
     uint bitsEncoded = 0;
     uint temp_bit = 0, next_bit;  // for encoding
     uint totalBitsToEncode = _messLen * 8;
-    
+    // 0: red, 1: green, 2: blue
+    uint8_t col_lsbs[3]; 
+        
     // loop through the image pixels
     for(uint y=0; y<_inputImageSizeY; y++)
     {
@@ -200,43 +203,25 @@ void ImageStegano::encodeImage(void)
         }
         // get the red, green, blue channels at pixel P(x, y)
         sf::Color curr_pixel = _inputImage.getPixel(x, y);
-        uint8_t red_lsb = curr_pixel.r & 1;
-        uint8_t grn_lsb = curr_pixel.g & 1;
-        uint8_t blu_lsb = curr_pixel.b & 1;
-
+        col_lsbs[0] = curr_pixel.r;
+        col_lsbs[1] = curr_pixel.g;
+        col_lsbs[2] = curr_pixel.b;
+        
         // TODO: get the next bit from input text bin and set lsbs
-        // ! refactoring needed
-
-        // red
-        next_bit = (uint8_t)utils::getNextBitFrom(_inputTextBin);
-        if(next_bit != -1)
+        for(int i=0; i<3; i++)
         {
-          // bits still remain
-          temp_bit = red_lsb ^ next_bit;  // if the bit changes or not
-          curr_pixel.r += temp_bit;
-          bitsEncoded++;
-        }
-        // green
-        next_bit = (uint8_t)utils::getNextBitFrom(_inputTextBin);
-        if(next_bit == -1)
-        {
-          temp_bit = grn_lsb ^ next_bit;
-          curr_pixel.g += temp_bit;
-          bitsEncoded++;
-        }
-        // blue
-        next_bit = (uint8_t)utils::getNextBitFrom(_inputTextBin);
-        if(next_bit != -1)
-        {
-          // bits still remain
-          temp_bit = blu_lsb ^ next_bit;
-          curr_pixel.b += temp_bit;
-          bitsEncoded++;
+          // get the next bit and compare with the lsb
+          next_bit = (uint8_t)utils::getNextBitFrom(_inputTextBin);
+          if(next_bit != -1)  
+          { // bits still remain to encode
+          
+            temp_bit = (col_lsbs[i] & 1) ^ next_bit;  // xor compare
+            col_lsbs[i] += temp_bit;
+            bitsEncoded++;
+          }
         }
         // set the output image pixel
-        sf::Color out_col = sf::Color((uint8_t)curr_pixel.r, (uint8_t)curr_pixel.g, 
-        (uint8_t)curr_pixel.b, (uint8_t)curr_pixel.a);
-        
+        sf::Color out_col = sf::Color(col_lsbs[0], col_lsbs[1], col_lsbs[2], curr_pixel.a);
         _outputImage.setPixel(x, y, out_col);
       }
     }
