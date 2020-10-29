@@ -186,7 +186,7 @@ void ImageStegano::encodeImage(void)
     createOutputImage();
 
     uint bitsEncoded = 0;
-    uint temp_bit = 0, next_bit;  // for encoding
+    uint temp_bit = 0; int next_bit;  // for encoding
     uint totalBitsToEncode = _messLen * 8;
     // 0: red, 1: green, 2: blue
     uint8_t col_lsbs[3]; 

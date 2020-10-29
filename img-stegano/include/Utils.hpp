@@ -21,7 +21,7 @@ namespace utils
   uint byteFromBinStr(std::string binStr, int byteNum)
   {
     // out of bounds
-    if(byteNum > (binStr.length() / 8))
+    if((uint)byteNum > (binStr.length() / 8))
     {
       std::cerr<<"::-> Error: invalid byte number\n";
       exit(1);
