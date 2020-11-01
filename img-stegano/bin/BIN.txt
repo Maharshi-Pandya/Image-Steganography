@@ -1,0 +1,1 @@
+A folder called bin must exist for the `make` command to work.
