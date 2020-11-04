@@ -64,9 +64,7 @@ namespace utils
     return finalStr;
   }
   // get the next bit from the bin str
-  // works for this program, else it can cause disaster :p
-  uint __cov_len = 0;
-  int getNextBitFrom(std::string binStr)
+  int getNextBitFrom(std::string binStr, uint __cov_len)
   {
     if(__cov_len > (uint)binStr.length() - 1)
     {
@@ -80,10 +78,8 @@ namespace utils
       std::cerr<<"::-> Error: The string must be composed of 0s and 1s.\n";
       exit(1);
     }
-    // increment the cov_len
+    // got the bit
     int bit = toBeBit == '0' ? 0 : 1;
-    __cov_len++;
-
     return bit;
   }
 }

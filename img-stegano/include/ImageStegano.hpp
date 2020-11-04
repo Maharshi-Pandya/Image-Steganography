@@ -23,6 +23,7 @@ private:
   */
 
   bool _wannaEncode = true, _doneEncoding = false;
+  uint __cov_len = 0;   // counter to get the next bit
   sf::Image _inputImage, _outputImage;
   uint _messLen;
   uint _inputImageSizeX, _inputImageSizeY;
@@ -37,7 +38,6 @@ public:
   void inputTextToBinStr(void);
   // set the input text if want to encode
   void setTextToEncode(std::string);
-  void setLenToDecode(uint);
   void createOutputImage(void);
   // encode and decode methods
   void encodeImage(void);
@@ -158,6 +158,7 @@ void ImageStegano::setTextToEncode(std::string inputText)
   this->inputTextToBinStr();
   this->_wannaEncode = true;
   this->_doneEncoding = false;
+  this->__cov_len = 0;
 }
 
 //------------------------------------------------------------------------------------
@@ -194,7 +195,8 @@ void ImageStegano::encodeImage(void)
         for(int i=0; i<3; i++)
         {
           // get the next bit and compare with the lsb
-          next_bit = (uint8_t)utils::getNextBitFrom(_inputTextBin);
+          next_bit = (uint8_t)utils::getNextBitFrom(_inputTextBin, __cov_len);
+          __cov_len++;  // increment the counter
           if(next_bit != -1)  
           { // bits still remain to encode
           
@@ -236,7 +238,7 @@ std::string ImageStegano::decodeTextFromImage(void)
 {
   if(_wannaEncode)
   {
-    std::cerr<<"::-> Error: Encode the image first then try to decode it\n";
+    std::cerr<<"::-> Error: Encode the image first then try to decode it :)\n";
     exit(1);
   }
   // start
