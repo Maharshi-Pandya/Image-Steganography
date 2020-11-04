@@ -13,8 +13,8 @@ LIST := $(BIN_DIR)/ImStegTest
 all: $(LIST)
 
 # what to do
-$(BIN_DIR)/%: $(SOURCES)
+$(BIN_DIR)/ImStegTest: $(SOURCES)
 	$(CC) $(CXXFLAGS) $< $(LDLIBS) -o $@
 
 clean:
-	$(RM) $(BIN_DIR)/*
+	$(RM) $(BIN_DIR)/ImStegTest

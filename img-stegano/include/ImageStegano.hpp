@@ -1,4 +1,5 @@
 // The Image-Stegano class for generating steganographic images
+// Currently supports file formats: bmp, tga, png
 #pragma once
 #if !defined(_IMAGE_STEGANO_)
 #define _IMAGE_STEGANO_
@@ -40,7 +41,7 @@ public:
   void createOutputImage(void);
   // encode and decode methods
   void encodeImage(void);
-  std::string decodeImage(void);
+  std::string decodeTextFromImage(void);
   // save image
   void saveEncodedImage(std::string pathToSave);
   void printInfo(void);
@@ -159,24 +160,6 @@ void ImageStegano::setTextToEncode(std::string inputText)
   this->_doneEncoding = false;
 }
 
-//-----------------------------------------------------------------------------------------
-
-void ImageStegano::setLenToDecode(uint messLen)
-{
-  this->_messLen = messLen;
-  if(this->_messLen <= 0)
-  {
-    // raise error if mess len is zero
-    std::cerr<<"::-> Error: The message length to decode cannot be zero\n";
-    exit(1);
-  }
-  // unset the input text and bin str
-  this->_inputText = "";
-  this->_inputTextBin = "";
-
-  this->_wannaEncode = false;
-}
-
 //------------------------------------------------------------------------------------
 
 void ImageStegano::encodeImage(void)
@@ -206,7 +189,7 @@ void ImageStegano::encodeImage(void)
         col_lsbs[0] = curr_pixel.r;
         col_lsbs[1] = curr_pixel.g;
         col_lsbs[2] = curr_pixel.b;
-        
+
         // TODO: get the next bit from input text bin and set lsbs
         for(int i=0; i<3; i++)
         {
@@ -221,13 +204,12 @@ void ImageStegano::encodeImage(void)
           }
         }
         // set the output image pixel
-        sf::Color out_col = sf::Color(col_lsbs[0], col_lsbs[1], col_lsbs[2], curr_pixel.a);
+        sf::Color out_col(col_lsbs[0], col_lsbs[1], col_lsbs[2], curr_pixel.a);
         _outputImage.setPixel(x, y, out_col);
       }
     }
   }
 }
-
 //---------------------------------------------------------------------------------------
 void ImageStegano::saveEncodedImage(std::string pathToSave)
 {
@@ -247,6 +229,51 @@ void ImageStegano::saveEncodedImage(std::string pathToSave)
     std::cerr<<"::-> Some error occurred while saving...Try again with valid path and/or file extension\n";
     exit(1);
   }
+}
+
+//-----------------------------------------------------------------------------------
+std::string ImageStegano::decodeTextFromImage(void)
+{
+  if(_wannaEncode)
+  {
+    std::cerr<<"::-> Error: Encode the image first then try to decode it\n";
+    exit(1);
+  }
+  // start
+  std::string decodedStrBin, decodedStr;
+  uint bitsDecoded = 0;
+  uint totalBitsToDecode = this->_messLen * 8;
+  // 0: red, 1: green, 2: blue
+  uint8_t col_lsbs[3];
+  // TODO: get the bits from lsb of the rgb values
+  for(uint y=0; y<_inputImageSizeY; y++)
+  {
+    for(uint x=0; x<_inputImageSizeX; x++)
+    {
+      if(bitsDecoded >= totalBitsToDecode)
+      {
+        // done decoding...
+        goto breakLoops;
+      }
+      sf::Color curr_pixel_col = _inputImage.getPixel(x, y);
+      col_lsbs[0] = curr_pixel_col.r;
+      col_lsbs[1] = curr_pixel_col.g;
+      col_lsbs[2] = curr_pixel_col.b;
+
+      for(int i=0; i<3; i++)
+      {
+        char bitChar = (col_lsbs[i] & 1) == 0 ? '0' : '1';
+        decodedStrBin += bitChar;   // append the bitchar to bin str
+        bitsDecoded++;
+      }
+    }
+  }
+  breakLoops:
+    // construct the readable string from number of bytes
+    uint binStrBytes = decodedStrBin.length() / 8;
+    decodedStr.append(utils::binStrToReadable(decodedStrBin, binStrBytes));
+
+  return decodedStr;
 }
 
 //-----------------------------------------------------------------------------------------

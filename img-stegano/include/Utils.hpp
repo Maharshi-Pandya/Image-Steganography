@@ -34,7 +34,7 @@ namespace utils
       char toBeBit = binStr[8*(byteNum - 1) + i];
       if(toBeBit != '0' && toBeBit != '1')
       {
-        std::cerr<<"::-> Error: The string must be composed of 0s and 1s.\n";
+        std::cerr<<"::-> Error: The string must be composed of 0s and 1s with no spaces.\n";
         exit(1);
       }
       // set the appropriate bit
@@ -44,7 +44,27 @@ namespace utils
 
     return (uint)byte;
   }
+  // convert the bin string to readable string
+  std::string binStrToReadable(std::string binStr, uint byteNum)
+  {
+    // alloc the readStr
+    char *readStr = new char[byteNum+1];
+    std::string finalStr;
+
+    for(uint i=0; i<byteNum; i++)
+    {
+      // get byte and set it
+      readStr[i] = byteFromBinStr(binStr, i+1);
+    }
+    // avoid junk
+    readStr[byteNum] = '\0';
+    finalStr = std::string(readStr);
+    // free the readStr
+    delete[] readStr;
+    return finalStr;
+  }
   // get the next bit from the bin str
+  // works for this program, else it can cause disaster :p
   uint __cov_len = 0;
   int getNextBitFrom(std::string binStr)
   {
